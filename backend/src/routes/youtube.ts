@@ -24,33 +24,45 @@ router.get('/videos', isAuthenticated, async (req, res) => {
 
 router.get('/videos/:videoId/comments', isAuthenticated, async (req, res) => {
   try {
-    const comments = await youtubeService.getVideoComments(
-      req.user as IUser,
-      req.params.videoId
-    );
+    const comments = await youtubeService.getVideoComments(req.user as IUser, req.params.videoId);
     res.json(comments);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching comments:', error);
-    res.status(500).json({ message: 'Failed to fetch comments' });
+    res.status(500).json({ message: error.message });
   }
 });
-//checking for the posting of the comment
-router.post('/videos/:videoId/comments', isAuthenticated, async (req, res) => {
+
+router.post('/videos/:videoId/comments/:commentId/reply', isAuthenticated, async (req, res) => {
   try {
+    const { videoId, commentId } = req.params;
     const { text } = req.body;
+
     if (!text) {
-      return res.status(400).json({ message: 'Comment text is required' });
+      return res.status(400).json({ message: 'Reply text is required' });
     }
 
-    const comment = await youtubeService.postComment(
-      req.user as IUser,
-      req.params.videoId,
-      text
-    );
+    console.log('Posting reply:', {
+      videoId,
+      commentId,
+      text,
+      user: (req.user as IUser).email
+    });
+
+    await youtubeService.postComment(req.user as IUser, videoId, text, commentId);
+    res.json({ message: 'Reply posted successfully' });
+  } catch (error: any) {
+    console.error('Error posting reply:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/videos/:videoId/comments', isAuthenticated, async (req, res) => {
+  try {
+    const comment = await youtubeService.postComment(req.user as IUser, req.params.videoId, req.body.text);
     res.json(comment);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error posting comment:', error);
-    res.status(500).json({ message: 'Failed to post comment' });
+    res.status(500).json({ message: error.message });
   }
 });
 

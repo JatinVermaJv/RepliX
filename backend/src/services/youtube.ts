@@ -1,6 +1,30 @@
 import { google } from 'googleapis';
 import { User, IUser } from '../models/User';
 
+interface YouTubeVideoItem {
+  id?: { videoId: string };
+  snippet?: {
+    title?: string;
+    thumbnails?: { medium?: { url: string } };
+    publishedAt?: string;
+  };
+}
+
+interface YouTubeCommentItem {
+  id: string;
+  snippet?: {
+    topLevelComment?: {
+      snippet?: {
+        authorDisplayName?: string;
+        authorProfileImageUrl?: string;
+        textDisplay?: string;
+        publishedAt?: string;
+        likeCount?: number;
+      };
+    };
+  };
+}
+
 export class YouTubeService {
   private static instance: YouTubeService;
   private youtube: any;
@@ -19,140 +43,119 @@ export class YouTubeService {
     return YouTubeService.instance;
   }
 
-  async getChannelVideos(user: IUser, maxResults: number = 10) {
+  private getAuth(user: IUser) {
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({
+      access_token: user.accessToken,
+      refresh_token: user.refreshToken,
+    });
+    return oauth2Client;
+  }
+
+  async getChannelVideos(user: IUser) {
     try {
-      console.log('Fetching channel videos for user:', user.email);
+      const auth = this.getAuth(user);
       
-      if (!user.accessToken) {
-        throw new Error('User access token is missing');
-      }
-
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        'http://localhost:3000/auth/google/callback'
-      );
-      
-      oauth2Client.setCredentials({
-        access_token: user.accessToken,
-        refresh_token: user.refreshToken
-      });
-
+      // First, get the user's channel ID
       const response = await this.youtube.channels.list({
-        auth: oauth2Client,
+        auth,
         part: ['contentDetails'],
         mine: true,
       });
 
-      if (!response.data.items || response.data.items.length === 0) {
-        throw new Error('No channel found for the authenticated user');
+      const channelId = response.data.items?.[0]?.id;
+      if (!channelId) {
+        throw new Error('Could not find channel ID');
       }
 
-      const uploadsPlaylistId = response.data.items[0].contentDetails.relatedPlaylists.uploads;
-      console.log('Found uploads playlist ID:', uploadsPlaylistId);
-
-      const videosResponse = await this.youtube.playlistItems.list({
-        auth: oauth2Client,
+      // Then, get the channel's videos
+      const videosResponse = await this.youtube.search.list({
+        auth,
         part: ['snippet'],
-        playlistId: uploadsPlaylistId,
-        maxResults,
+        channelId,
+        type: ['video'],
+        order: 'date',
+        maxResults: 10,
       });
 
-      if (!videosResponse.data.items) {
-        return [];
-      }
+      return videosResponse.data.items?.map((item: YouTubeVideoItem) => ({
+        id: item.id?.videoId,
+        title: item.snippet?.title,
+        thumbnail: item.snippet?.thumbnails?.medium?.url,
+        publishedAt: item.snippet?.publishedAt,
+      })) || [];
 
-      const videos = videosResponse.data.items.map((item: any) => ({
-        id: item.snippet.resourceId.videoId,
-        title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails.medium.url,
-        publishedAt: item.snippet.publishedAt,
-      }));
-
-      console.log(`Successfully fetched ${videos.length} videos`);
-      return videos;
     } catch (error: any) {
-      console.error('Error fetching channel videos:', {
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-      
-      if (error.code === 401) {
-        throw new Error('Authentication failed. Please log in again.');
-      }
-      
+      console.error('Error fetching channel videos:', error);
       throw new Error(`Failed to fetch videos: ${error.message}`);
     }
   }
 
-  async getVideoComments(user: IUser, videoId: string, maxResults: number = 10) {
+  async getVideoComments(user: IUser, videoId: string) {
     try {
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        'http://localhost:3000/auth/google/callback'
-      );
+      const auth = this.getAuth(user);
       
-      oauth2Client.setCredentials({
-        access_token: user.accessToken,
-        refresh_token: user.refreshToken
-      });
-
       const response = await this.youtube.commentThreads.list({
-        auth: oauth2Client,
+        auth,
         part: ['snippet'],
         videoId,
-        maxResults,
-        order: 'relevance',
+        maxResults: 100,
       });
 
-      return response.data.items.map((item: any) => ({
+      return response.data.items?.map((item: YouTubeCommentItem) => ({
         id: item.id,
-        author: item.snippet.topLevelComment.snippet.authorDisplayName,
-        authorImage: item.snippet.topLevelComment.snippet.authorProfileImageUrl,
-        text: item.snippet.topLevelComment.snippet.textDisplay,
-        publishedAt: item.snippet.topLevelComment.snippet.publishedAt,
-        likeCount: item.snippet.topLevelComment.snippet.likeCount,
-      }));
-    } catch (error) {
+        author: item.snippet?.topLevelComment?.snippet?.authorDisplayName,
+        authorImage: item.snippet?.topLevelComment?.snippet?.authorProfileImageUrl,
+        text: item.snippet?.topLevelComment?.snippet?.textDisplay,
+        publishedAt: item.snippet?.topLevelComment?.snippet?.publishedAt,
+        likeCount: item.snippet?.topLevelComment?.snippet?.likeCount,
+      })) || [];
+
+    } catch (error: any) {
       console.error('Error fetching video comments:', error);
-      throw error;
+      throw new Error(`Failed to fetch comments: ${error.message}`);
     }
   }
 
-  async postComment(user: IUser, videoId: string, commentText: string) {
+  async postComment(user: IUser, videoId: string, text: string, parentId?: string) {
     try {
-      const oauth2Client = new google.auth.OAuth2(
-        process.env.GOOGLE_CLIENT_ID,
-        process.env.GOOGLE_CLIENT_SECRET,
-        'http://localhost:3000/auth/google/callback'
-      );
-      
-      oauth2Client.setCredentials({
-        access_token: user.accessToken,
-        refresh_token: user.refreshToken
-      });
+      const auth = this.getAuth(user);
 
-      const response = await this.youtube.commentThreads.insert({
-        auth: oauth2Client,
-        part: ['snippet'],
-        requestBody: {
-          snippet: {
-            videoId,
-            topLevelComment: {
-              snippet: {
-                textOriginal: commentText,
+      if (parentId) {
+        // This is a reply to an existing comment
+        const response = await this.youtube.comments.insert({
+          auth,
+          part: ['snippet'],
+          requestBody: {
+            snippet: {
+              parentId,
+              textOriginal: text,
+              videoId,
+            },
+          },
+        });
+        return response.data;
+      } else {
+        // This is a new top-level comment
+        const response = await this.youtube.commentThreads.insert({
+          auth,
+          part: ['snippet'],
+          requestBody: {
+            snippet: {
+              videoId,
+              topLevelComment: {
+                snippet: {
+                  textOriginal: text,
+                },
               },
             },
           },
-        },
-      });
-
-      return response.data;
-    } catch (error) {
+        });
+        return response.data;
+      }
+    } catch (error: any) {
       console.error('Error posting comment:', error);
-      throw error;
+      throw new Error(`Failed to post comment: ${error.message}`);
     }
   }
 } 

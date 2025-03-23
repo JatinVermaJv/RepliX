@@ -7,6 +7,7 @@ import passport from 'passport';
 import { configurePassport } from './config/passport';
 import authRoutes from './routes/auth';
 import youtubeRoutes from './routes/youtube';
+import aiRoutes from './routes/ai';
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ configurePassport();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to YouTube Comment Assistant API' });
