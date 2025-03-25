@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "YouTube Comment Assistant",
+  title: "RepliX",
   description: "AI-powered YouTube comment management tool",
 };
 
