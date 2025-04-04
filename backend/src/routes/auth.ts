@@ -1,5 +1,10 @@
 import express from 'express';
 import passport from 'passport';
+import { Session } from 'express-session';
+
+interface CustomSession extends Session {
+  returnTo?: string;
+}
 
 const router = express.Router();
 
@@ -9,6 +14,11 @@ const FRONTEND_URL = process.env.NODE_ENV === 'production'
 
 router.get(
   '/google',
+  (req, res, next) => {
+    // Store the intended return URL in session
+    (req.session as CustomSession).returnTo = req.get('Referer') || FRONTEND_URL;
+    next();
+  },
   passport.authenticate('google', {
     scope: [
       'https://www.googleapis.com/auth/userinfo.profile',
@@ -28,6 +38,7 @@ router.get(
         return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);
       }
       if (!user) {
+        console.error('No user found');
         return res.redirect(`${FRONTEND_URL}/login?error=no_user`);
       }
       req.logIn(user, (err) => {
@@ -35,14 +46,19 @@ router.get(
           console.error('Login error:', err);
           return res.redirect(`${FRONTEND_URL}/login?error=login_failed`);
         }
-        res.cookie('auth_status', 'success', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
-          maxAge: 24 * 60 * 60 * 1000 
+
+        // Set session cookie
+        req.session.cookie.secure = process.env.NODE_ENV === 'production';
+        req.session.cookie.sameSite = process.env.NODE_ENV === 'production' ? 'none' : 'lax';
+        
+        // Save session before redirect
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.redirect(`${FRONTEND_URL}/login?error=session_error`);
+          }
+          return res.redirect(FRONTEND_URL);
         });
-        return res.redirect(FRONTEND_URL);
       });
     })(req, res, next);
   }
@@ -50,16 +66,20 @@ router.get(
 
 router.get('/logout', (req, res) => {
   req.logout(() => {
-    res.clearCookie('auth_status', {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+      }
+      res.redirect(FRONTEND_URL);
     });
-    res.redirect(FRONTEND_URL);
   });
 });
 
 router.get('/me', (req, res) => {
+  console.log('Session ID:', req.sessionID);
+  console.log('Is Authenticated:', req.isAuthenticated());
+  console.log('User:', req.user);
+  
   if (req.isAuthenticated()) {
     res.json(req.user);
   } else {

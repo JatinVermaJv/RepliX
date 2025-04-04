@@ -37,14 +37,21 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000,
-    domain: undefined // Remove domain restriction
-  }
+    path: '/',
+  },
+  name: 'replix.sid'
 }));
+
+// Trust proxy for secure cookies in production
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
 
 app.use(passport.initialize());
 app.use(passport.session());
