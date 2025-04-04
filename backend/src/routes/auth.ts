@@ -3,6 +3,10 @@ import passport from 'passport';
 
 const router = express.Router();
 
+const FRONTEND_URL = process.env.NODE_ENV === 'production'
+  ? 'https://repli-x.vercel.app'
+  : 'http://localhost:3000';
+
 router.get(
   '/google',
   passport.authenticate('google', {
@@ -21,23 +25,24 @@ router.get(
     passport.authenticate('google', (err: Error, user: any, info: any) => {
       if (err) {
         console.error('Authentication error:', err);
-        return res.redirect('http://localhost:3000/login?error=authentication_failed');
+        return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);
       }
       if (!user) {
-        return res.redirect('http://localhost:3000/login?error=no_user');
+        return res.redirect(`${FRONTEND_URL}/login?error=no_user`);
       }
       req.logIn(user, (err) => {
         if (err) {
           console.error('Login error:', err);
-          return res.redirect('http://localhost:3000/login?error=login_failed');
+          return res.redirect(`${FRONTEND_URL}/login?error=login_failed`);
         }
         res.cookie('auth_status', 'success', {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
           maxAge: 24 * 60 * 60 * 1000 
         });
-        return res.redirect('http://localhost:3000');
+        return res.redirect(FRONTEND_URL);
       });
     })(req, res, next);
   }
@@ -45,8 +50,12 @@ router.get(
 
 router.get('/logout', (req, res) => {
   req.logout(() => {
-    res.clearCookie('auth_status');
-    res.redirect('http://localhost:3000');
+    res.clearCookie('auth_status', {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    });
+    res.redirect(FRONTEND_URL);
   });
 });
 

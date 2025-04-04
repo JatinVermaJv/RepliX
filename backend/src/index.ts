@@ -20,8 +20,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/youtube-c
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://repli-x.vercel.app', 'https://replix.onrender.com']
-    : process.env.FRONTEND_URL || 'http://localhost:3000',
+    ? ['https://repli-x.vercel.app', 'http://localhost:3000']
+    : 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
@@ -42,7 +42,7 @@ app.use(session({
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000,
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    domain: undefined // Remove domain restriction
   }
 }));
 

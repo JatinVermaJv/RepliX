@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 interface User {
   id: string;
   name: string;
@@ -23,17 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
   const checkAuth = async () => {
     try {
       setError(null);
-      const response = await fetch('https://replix.onrender.com/api/auth/me', {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Origin': window.location.origin
         },
       });
       
@@ -55,16 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = () => {
-    window.location.href = 'https://replix.onrender.com/api/auth/google';
+    window.location.href = `${API_URL}/api/auth/google`;
   };
 
   const logout = async () => {
     try {
       setError(null);
-      await fetch('https://replix.onrender.com/api/auth/logout', {
+      await fetch(`${API_URL}/api/auth/logout`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Origin': window.location.origin
         },
       });
       setUser(null);
@@ -73,6 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError('Failed to logout. Please try again.');
     }
   };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleFocus = () => {
