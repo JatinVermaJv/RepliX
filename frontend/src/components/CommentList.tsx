@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 
 interface Comment {
@@ -26,15 +26,11 @@ export default function CommentList({ videoId }: CommentListProps) {
   const [aiReply, setAiReply] = useState<string | null>(null);
   const [isGeneratingReply, setIsGeneratingReply] = useState(false);
 
-  useEffect(() => {
-    fetchComments();
-  }, [videoId]);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`http://localhost:3001/api/youtube/videos/${videoId}/comments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/youtube/videos/${videoId}/comments`, {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -43,12 +39,17 @@ export default function CommentList({ videoId }: CommentListProps) {
       }
       const data = await response.json();
       setComments(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [videoId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +58,7 @@ export default function CommentList({ videoId }: CommentListProps) {
     try {
       setIsSubmitting(true);
       setError(null);
-      const response = await fetch(`http://localhost:3001/api/youtube/videos/${videoId}/comments`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/youtube/videos/${videoId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,8 +74,9 @@ export default function CommentList({ videoId }: CommentListProps) {
 
       setNewComment('');
       fetchComments();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setError(error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +86,7 @@ export default function CommentList({ videoId }: CommentListProps) {
     try {
       setIsSubmitting(true);
       setError(null);
-      const response = await fetch(`http://localhost:3001/api/youtube/videos/${videoId}/comments/${commentId}/reply`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/youtube/videos/${videoId}/comments/${commentId}/reply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,14 +100,13 @@ export default function CommentList({ videoId }: CommentListProps) {
         throw new Error(data.message || 'Failed to post reply');
       }
 
-      // Clear the AI reply and selected comment after successful submission
       setAiReply(null);
       setSelectedComment(null);
-      // Refresh comments to show the new reply
       fetchComments();
-    } catch (err: any) {
-      console.error('Reply Error:', err);
-      setError(err.message || 'Failed to post reply. Please try again.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('Reply Error:', error);
+      setError(error.message || 'Failed to post reply. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -117,7 +118,7 @@ export default function CommentList({ videoId }: CommentListProps) {
       setError(null);
       setAiReply(null);
 
-      const response = await fetch('http://localhost:3001/api/ai/generate-reply', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/ai/generate-reply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -136,9 +137,10 @@ export default function CommentList({ videoId }: CommentListProps) {
         throw new Error('No reply was generated. Please try again.');
       }
       setAiReply(data.reply);
-    } catch (err: any) {
-      console.error('AI Reply Error:', err);
-      setError(err.message || 'Failed to generate reply. Please try again.');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error('AI Reply Error:', error);
+      setError(error.message || 'Failed to generate reply. Please try again.');
     } finally {
       setIsGeneratingReply(false);
     }

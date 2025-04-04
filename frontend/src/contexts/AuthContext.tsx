@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuth = async () => {
     try {
       setError(null);
-      const response = await fetch('http://localhost:3001/api/auth/me', {
+      const response = await fetch('https://replix.onrender.com/api/auth/me', {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
@@ -55,13 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = () => {
-    window.location.href = 'http://localhost:3001/api/auth/google';
+    window.location.href = 'https://replix.onrender.com/api/auth/google';
   };
 
   const logout = async () => {
     try {
       setError(null);
-      await fetch('http://localhost:3001/api/auth/logout', {
+      await fetch('https://replix.onrender.com/api/auth/logout', {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',

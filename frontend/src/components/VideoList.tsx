@@ -28,7 +28,7 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:3001/api/youtube/videos', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/youtube/videos`, {
         credentials: 'include',
       });
       
@@ -39,12 +39,13 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
 
       const data = await response.json();
       setVideos(data);
-    } catch (error: any) {
-      console.error('Error fetching videos:', error);
-      setError(error.message || 'Failed to load videos. Please try again.');
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error('Error fetching videos:', err);
+      setError(err.message || 'Failed to load videos. Please try again.');
       
       // If the error is due to authentication, redirect to login
-      if (error.message?.includes('Authentication failed')) {
+      if (err.message?.includes('Authentication failed')) {
         window.location.href = '/login';
       }
     } finally {

@@ -21,7 +21,9 @@ export const configurePassport = () => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        callbackURL: 'http://localhost:3001/api/auth/google/callback',
+        callbackURL: process.env.NODE_ENV === 'production'
+          ? 'https://replix.onrender.com/api/auth/google/callback'
+          : 'http://localhost:3001/api/auth/google/callback',
         scope: [
           'https://www.googleapis.com/auth/userinfo.profile',
           'https://www.googleapis.com/auth/userinfo.email',
