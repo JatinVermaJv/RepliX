@@ -20,12 +20,17 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/youtube-c
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://replix.vercel.app', 'https://replix.onrender.com']
+    ? ['https://repli-x.vercel.app', 'https://replix.onrender.com']
     : process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+  exposedHeaders: ['Set-Cookie'],
 }));
+
+// Add a pre-flight route handler
+app.options('*', cors());
+
 app.use(express.json());
 
 app.use(session({
@@ -35,7 +40,9 @@ app.use(session({
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 24 * 60 * 60 * 1000,
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
   }
 }));
 
