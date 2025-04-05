@@ -35,7 +35,7 @@ function LoginContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 page-transition">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
           <p className="mt-4 text-gray-300">Loading...</p>
@@ -45,7 +45,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center">
+    <div className="relative min-h-screen flex flex-col items-center justify-center page-transition">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
