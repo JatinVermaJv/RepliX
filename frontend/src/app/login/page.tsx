@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 function LoginContent() {
   const { user, login, loading, error } = useAuth();
@@ -34,25 +35,39 @@ function LoginContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+          <p className="mt-4 text-gray-300">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900">
-      <div className="text-center mb-8">
-        <h1 className="text-6xl font-bold text-red-500 mb-4">RepliX</h1>
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto px-4">
+    <div className="relative min-h-screen flex flex-col items-center justify-center">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/LandingPage.jpg"
+          alt="Samurai in misty forest"
+          fill
+          className="object-cover"
+          priority
+          quality={100}
+        />
+        <div className="absolute inset-0 bg-gray-900/70 backdrop-blur-sm"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center mb-8">
+        <h1 className="text-6xl font-bold text-red-500 mb-4 drop-shadow-lg">RepliX</h1>
+        <p className="text-xl text-gray-100 max-w-2xl mx-auto px-4 drop-shadow">
           Your AI-powered YouTube comment assistant. Streamline your engagement, 
           manage responses with a single click.
         </p>
       </div>
-      <div className="max-w-md w-full mx-4 space-y-8 p-8 bg-gray-800 rounded-xl shadow-2xl border border-gray-700">
+      <div className="relative z-10 max-w-md w-full mx-4 space-y-8 p-8 bg-gray-900/80 backdrop-blur-md rounded-xl shadow-2xl border border-gray-700">
         <div>
           <h2 className="text-center text-2xl font-semibold text-white">
             Welcome 
@@ -82,7 +97,7 @@ function LoginContent() {
           Sign in with Google
         </button>
       </div>
-      <div className="mt-8 text-center text-sm text-gray-400">
+      <div className="relative z-10 mt-8 text-center text-sm text-gray-300">
         <p>By signing in, you agree to our Terms of Service and Privacy Policy</p>
       </div>
     </div>
@@ -92,10 +107,10 @@ function LoginContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
+          <p className="mt-4 text-gray-300">Loading...</p>
         </div>
       </div>
     }>
