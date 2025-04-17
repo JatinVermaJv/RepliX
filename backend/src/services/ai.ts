@@ -1,20 +1,22 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
 export class AIService {
   private static instance: AIService;
-  private readonly openai: OpenAI;
+  private readonly genAI: GoogleGenerativeAI;
+  private readonly model: any;
 
   private constructor() {
-    const apiKey = process.env['OPENAI_API_KEY'];
+    const apiKey = process.env['GEMINI_API_KEY'];
     if (!apiKey) {
       console.error('Environment variables:', process.env);
-      throw new Error('OPENAI_API_KEY is not set in environment variables');
+      throw new Error('GEMINI_API_KEY is not set in environment variables');
     }
-    this.openai = new OpenAI({ apiKey });
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   }
 
   public static getInstance(): AIService {
@@ -26,52 +28,41 @@ export class AIService {
 
   async generateReply(comment: string): Promise<string> {
     try {
-      // Log the incoming comment and prompt structure
       console.log('\n=== AI Reply Generation Debug ===');
       console.log('Original comment:', comment);
       
-      const systemPrompt = "You are a helpful assistant that generates friendly and professional replies to YouTube comments. Keep the replies concise, relevant, and engaging.";
-      const userPrompt = `Please generate a friendly reply to this YouTube comment: "${comment}"`;
-      
-      console.log('\nPrompt Structure:');
-      console.log('System:', systemPrompt);
-      console.log('User:', userPrompt);
-      
-      // For testing, return a hardcoded reply
-      const hardcodedReply = "Thank you for your comment! I appreciate your feedback and perspective. Looking forward to creating more content you'll enjoy! 😊";
-      
-      console.log('\nGenerated reply (hardcoded):', hardcodedReply);
-      console.log('=== End Debug ===\n');
+      const prompt = `As a YouTube content creator, generate a friendly and professional reply to this comment: "${comment}"
 
-      return hardcodedReply;
+Guidelines for the reply:
+-keep the reply short and concise and also punchy
+-be friendly and engaging
+-sound natural and personalized
+-include an emoji if appropriate
 
-      /* Commented out OpenAI implementation for now
-      const completion = await this.openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: userPrompt
-          }
-        ],
-        max_tokens: 150,
-        temperature: 0.7,
-      });
-
-      const reply = completion.choices[0]?.message?.content?.trim();
+just give me one of the option not all the options just ready to be posted option you see fit`;
       
-      if (!reply) {
-        throw new Error('No reply was generated');
+      console.log('\nPrompt:', prompt);
+
+      try {
+        const result = await this.model.generateContent(prompt);
+        const reply = result.response.text().trim();
+        
+        if (!reply) {
+          throw new Error('No reply was generated');
+        }
+
+        console.log('Successfully generated reply:', reply);
+        console.log('=== End Debug ===\n');
+        
+        return reply;
+      } catch (error) {
+        console.error('Gemini API Error:', error);
+        // Fallback to a safe default response if the API fails
+        const fallbackReply = "Thank you for your comment! I appreciate your feedback. 🙏";
+        console.log('Using fallback reply:', fallbackReply);
+        console.log('=== End Debug ===\n');
+        return fallbackReply;
       }
-
-      console.log('Successfully generated reply:', reply);
-      return reply;
-      */
-
     } catch (error: any) {
       console.error('Error generating reply:', error);
       throw new Error(`Failed to generate reply: ${error.message}`);
