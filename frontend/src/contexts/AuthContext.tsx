@@ -61,15 +61,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       setError(null);
-      await fetch(`${API_URL}/api/auth/logout`, {
+      // First clear the user state to prevent UI issues
+      setUser(null);
+      
+      // Navigate to login page immediately
+      window.location.href = '/login';
+      
+      // Then make the logout request in the background
+      fetch(`${API_URL}/api/auth/logout`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'Origin': window.location.origin
         },
+      }).catch(error => {
+        console.error('Background logout failed:', error);
+        // We don't set an error here since the user is already redirected
       });
-      setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
       setError('Failed to logout. Please try again.');
