@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,16 +9,20 @@ import Link from 'next/link';
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [showLoadingState, setShowLoadingState] = useState(false);
 
-  // If user is already authenticated, redirect to dashboard
   useEffect(() => {
     if (!loading && user) {
       router.push('/dashboard');
     }
+    
+    // Only show loading indicator if authentication check takes longer than 500ms
+    const timer = setTimeout(() => setShowLoadingState(loading), 500);
+    return () => clearTimeout(timer);
   }, [user, loading, router]);
-
-  // Show loading state while checking authentication
-  if (loading) {
+  
+  // Only show loading UI if auth check is taking time
+  if (loading && showLoadingState) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
@@ -39,12 +43,15 @@ export default function Home() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/DB1.jpg"
+          src="/image.png"
           alt="Samurai forest background"
           fill
           className="object-cover"
           priority
-          quality={100}
+          quality={80} // Reduce from 100 to 80
+          sizes="100vw" 
+          placeholder="blur" 
+          blurDataURL="data:image/png;base64,..."
         />
         <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       </div>
