@@ -6,20 +6,38 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Simple gray placeholder image as base64
+const PLACEHOLDER_BLUR_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
 export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [showLoadingState, setShowLoadingState] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
+  // Effect for handling loading state
   useEffect(() => {
-    if (!loading && user) {
+    // Only show loading indicator if authentication check takes longer than 500ms
+    const timer = setTimeout(() => {
+      setShowLoadingState(loading);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Loading state changed:', loading);
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [loading]);
+  
+  // Effect for handling redirect
+  useEffect(() => {
+    if (!loading && user && !isRedirecting) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Redirecting to dashboard, user:', user);
+      }
+      setIsRedirecting(true);
       router.push('/dashboard');
     }
-    
-    // Only show loading indicator if authentication check takes longer than 500ms
-    const timer = setTimeout(() => setShowLoadingState(loading), 500);
-    return () => clearTimeout(timer);
-  }, [user, loading, router]);
+  }, [user, loading, router, isRedirecting]);
   
   // Only show loading UI if auth check is taking time
   if (loading && showLoadingState) {
@@ -33,8 +51,8 @@ export default function Home() {
     );
   }
 
-  // If user is authenticated, don't render anything (will redirect)
-  if (user) {
+  // If user is authenticated and redirecting, don't render anything
+  if (user && isRedirecting) {
     return null;
   }
 
@@ -48,10 +66,10 @@ export default function Home() {
           fill
           className="object-cover"
           priority
-          quality={80} // Reduce from 100 to 80
+          quality={80}
           sizes="100vw" 
           placeholder="blur" 
-          blurDataURL="data:image/png;base64,..."
+          blurDataURL={PLACEHOLDER_BLUR_DATA_URL}
         />
         <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       </div>
