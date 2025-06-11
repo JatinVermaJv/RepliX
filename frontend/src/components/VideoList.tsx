@@ -28,9 +28,19 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
       setLoading(true);
       setError(null);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/youtube/videos`, {
         credentials: 'include',
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -43,6 +53,10 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
       const err = error as Error;
       console.error('Error fetching videos:', err);
       setError(err.message || 'Failed to load videos. Please try again.');
+      
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please try again.');
+      }
       
       // If the error is due to authentication, redirect to login
       if (err.message?.includes('Authentication failed')) {

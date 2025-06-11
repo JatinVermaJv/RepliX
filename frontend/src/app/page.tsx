@@ -66,10 +66,11 @@ export default function Home() {
           fill
           className="object-cover"
           priority
-          quality={80}
-          sizes="100vw" 
-          placeholder="blur" 
+          quality={75}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          placeholder="blur"
           blurDataURL={PLACEHOLDER_BLUR_DATA_URL}
+          loading="eager"
         />
         <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       </div>
