@@ -43,7 +43,8 @@ export default function DashboardPage() {
           fill
           className="object-cover"
           priority
-          quality={100}
+          quality={75}
+          sizes="100vw"
         />
         <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       </div>
