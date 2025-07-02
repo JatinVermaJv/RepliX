@@ -20,7 +20,6 @@ const DashboardSkeleton = () => (
         className="object-cover"
         priority
         quality={75}
-        sizes="100vw"
       />
       <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
     </div>
