@@ -61,6 +61,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/ai', aiRoutes);
 
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'UP' });
+});
+
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to YouTube Comment Assistant API' });
 });
