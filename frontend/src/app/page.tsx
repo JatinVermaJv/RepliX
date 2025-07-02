@@ -122,7 +122,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
-                Why You'll Love RepliX
+                Why You`&apos;`ll Love RepliX
               </h2>
               <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-300">
                 Everything you need to supercharge your comment management.
