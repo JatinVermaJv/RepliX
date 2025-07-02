@@ -6,6 +6,59 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import VideoList from '@/components/VideoList';
 import CommentList from '@/components/CommentList';
+import VideoListSkeleton from '@/components/VideoListSkeleton';
+import CommentListSkeleton from '@/components/CommentListSkeleton';
+
+const DashboardSkeleton = () => (
+  <div className="relative min-h-screen bg-gray-900 text-white">
+    {/* Background Image */}
+    <div className="absolute inset-0 z-0">
+      <Image
+        src="/Dashboard.jpg"
+        alt="Samurai forest background"
+        fill
+        className="object-cover"
+        priority
+        quality={75}
+        sizes="100vw"
+      />
+      <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
+    </div>
+
+    {/* Navigation Skeleton */}
+    <nav className="relative z-10 bg-gray-800/50 backdrop-blur-md shadow-lg border-b border-gray-700/50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center space-x-4">
+            <div className="animate-pulse bg-gray-700/50 rounded-md h-8 w-24"></div>
+          </div>
+          <div className="flex items-center space-x-6">
+            <div className="animate-pulse bg-gray-700/50 rounded-full h-8 w-8"></div>
+            <div className="animate-pulse bg-gray-700/50 rounded-md h-8 w-24"></div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    {/* Main Content Skeleton */}
+    <main className="relative z-10 max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="lg:w-1/3 space-y-6">
+          <div className="animate-pulse bg-gray-700/50 rounded-md h-8 w-1/2"></div>
+          <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 shadow-xl">
+            <VideoListSkeleton />
+          </div>
+        </div>
+        <div className="lg:w-2/3 space-y-6">
+          <div className="animate-pulse bg-gray-700/50 rounded-md h-8 w-1/2"></div>
+          <div className="bg-gray-800/40 backdrop-blur-md rounded-xl p-6 border border-gray-700/50 shadow-xl">
+            <CommentListSkeleton />
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+);
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
@@ -18,19 +71,8 @@ export default function DashboardPage() {
     }
   }, [user, loading, router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900 page-transition">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto"></div>
-          <p className="mt-4 text-gray-300">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
+  if (loading || !user) {
+    return <DashboardSkeleton />;
   }
 
   return (
