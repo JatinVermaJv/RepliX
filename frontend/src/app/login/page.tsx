@@ -1,21 +1,15 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
 function LoginContent() {
-  const { user, login, loading, error } = useAuth();
-  const router = useRouter();
+  const { login, loading, error } = useAuth();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (user) {
-      router.push('/dashboard');
-    }
-  }, [user, router]);
+  
 
   const getErrorMessage = () => {
     const errorParam = searchParams?.get('error');

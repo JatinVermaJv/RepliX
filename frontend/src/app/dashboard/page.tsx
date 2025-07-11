@@ -14,7 +14,7 @@ const DashboardSkeleton = () => (
     {/* Background Image */}
     <div className="absolute inset-0 z-0">
       <Image
-        src="/Dashboard.jpg"
+        src="../../public/Dashboard.jpg"
         alt="Samurai forest background"
         fill
         className="object-cover"
@@ -79,7 +79,7 @@ export default function DashboardPage() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/Dashboard.jpg"
+          src="../../public/Dashboard.jpg"
           alt="Samurai forest background"
           fill
           className="object-cover"
@@ -95,7 +95,12 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-red-500">RepliX</h1>
+              <button 
+                onClick={() => router.push('/')}
+                className="text-2xl font-bold text-red-500 hover:text-red-400 transition-colors duration-200 cursor-pointer"
+              >
+                RepliX
+              </button>
               <span className="h-6 w-px bg-gray-700/50"></span>
               <p className="text-sm text-gray-400">YouTube Comment Assistant</p>
             </div>
