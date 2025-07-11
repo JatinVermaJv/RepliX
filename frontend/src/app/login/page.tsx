@@ -33,12 +33,12 @@ function LoginContent() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/LandingPage.jpg"
+          src="/dashboard.jpg"
           alt="Samurai forest background"
           fill
           className="object-cover"
           priority
-          quality={100}
+          quality={75}
         />
         <div className="absolute inset-0 bg-gray-900/80 backdrop-blur-sm"></div>
       </div>
