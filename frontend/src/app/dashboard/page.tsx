@@ -14,7 +14,7 @@ const DashboardSkeleton = () => (
     {/* Background Image */}
     <div className="absolute inset-0 z-0">
       <Image
-        src="../../public/Dashboard.jpg"
+        src="/Dashboard.jpg"
         alt="Samurai forest background"
         fill
         className="object-cover"
@@ -79,7 +79,7 @@ export default function DashboardPage() {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="../../public/Dashboard.jpg"
+          src="/Dashboard.jpg"
           alt="Samurai forest background"
           fill
           className="object-cover"
