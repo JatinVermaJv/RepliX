@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface Video {
   id: string;
@@ -18,6 +19,7 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     fetchVideos();
@@ -103,10 +105,12 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
       {videos.map((video) => (
         <div
           key={video.id}
-          className="bg-gray-700/50 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-700/70 transition-colors"
-          onClick={() => onVideoSelect(video.id)}
+          className="bg-gray-700/50 rounded-lg overflow-hidden hover:bg-gray-700/70 transition-colors"
         >
-          <div className="relative aspect-video">
+          <div 
+            className="relative aspect-video cursor-pointer"
+            onClick={() => onVideoSelect(video.id)}
+          >
             <Image
               src={video.thumbnail}
               alt={video.title}
@@ -116,12 +120,30 @@ export default function VideoList({ onVideoSelect }: VideoListProps) {
             />
           </div>
           <div className="p-3">
-            <h3 className="text-sm font-medium text-gray-100 line-clamp-2">
+            <h3 
+              className="text-sm font-medium text-gray-100 line-clamp-2 cursor-pointer hover:text-white transition-colors"
+              onClick={() => onVideoSelect(video.id)}
+            >
               {video.title}
             </h3>
             <p className="text-xs text-gray-400 mt-1">
               {new Date(video.publishedAt).toLocaleDateString()}
             </p>
+            <div className="flex space-x-2 mt-3">
+              <button
+                onClick={() => onVideoSelect(video.id)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-xs font-medium transition-colors"
+              >
+                View Comments
+              </button>
+              <button
+                onClick={() => router.push(`/comments/${video.id}`)}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center justify-center"
+              >
+                <span className="mr-1">🧠</span>
+                Analyze Sentiment
+              </button>
+            </div>
           </div>
         </div>
       ))}

@@ -27,4 +27,23 @@ router.post('/generate-reply', isAuthenticated, async (req, res) => {
   }
 });
 
+router.post('/categorize-comments', isAuthenticated, async (req, res) => {
+  try {
+    const { comments } = req.body;
+    if (!comments || !Array.isArray(comments)) {
+      return res.status(400).json({ message: 'Comments array is required' });
+    }
+
+    if (comments.length === 0) {
+      return res.json({ positive: [], negative: [], neutral: [] });
+    }
+
+    const categorizedComments = await aiService.categorizeComments(comments);
+    res.json(categorizedComments);
+  } catch (error: any) {
+    console.error('Error categorizing comments:', error);
+    res.status(500).json({ message: error.message || 'Failed to categorize comments' });
+  }
+});
+
 export default router; 
